@@ -31,11 +31,13 @@ int bind(uint32);
 int unbind(uint32);
 int send(uint32, uint32, uint32, char *, uint32);
 int recv(uint32, uint32*, uint32*, char *, uint32);
+int connect(uint32, uint16, uint16);
 #endif
 #ifdef LAB_PGTBL
 int ugetpid(void);
 uint64 pgpte(void*);
 void kpgtbl(void);
+int pgaccess(void *base, int len, uint32  *mask);
 #endif
 
 // ulib.c

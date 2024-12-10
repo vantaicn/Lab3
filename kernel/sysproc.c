@@ -5,7 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
-
+#include"syscall.h"
 uint64
 sys_exit(void)
 {
@@ -98,6 +98,36 @@ sys_kpgtbl(void)
   p = myproc();
   vmprint(p->pagetable);
   return 0;
+}
+int
+sys_pgaccess(void)
+{
+       uint64 start;
+    int len;
+    uint64 vec;
+    
+    argaddr(0, &start);
+    argint(1, &len);
+    argaddr(2, &vec);
+   
+    if (len > 32) 
+        len = 32;
+    uint32 bitmask = 0; 
+    struct proc *p = myproc(); 
+    for(int i = 0; i < len; i++) {
+        uint64 va = start + i * PGSIZE;
+        pte_t *pte = walk(p->pagetable, va, 0);
+        if(pte && (*pte & PTE_V) && (*pte & PTE_U)) {
+            if(*pte & PTE_A) {
+                bitmask |= (1U << i); 
+                *pte &= ~PTE_A;
+            }
+        }
+    }
+    // Copy bitmask ra user-space
+    if(copyout(p->pagetable, vec, (char *)&bitmask, sizeof(bitmask)) < 0)
+        return -1;
+    return 0;
 }
 #endif
 
